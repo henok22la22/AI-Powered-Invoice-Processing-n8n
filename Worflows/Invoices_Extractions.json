@@ -1,0 +1,372 @@
+{
+  "name": "Invoices Extractions",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1Em-6nUIEqptDFHfeYh5cgCzW2wkp5Qmi",
+          "mode": "list",
+          "cachedResultName": "Invoices ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Em-6nUIEqptDFHfeYh5cgCzW2wkp5Qmi"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -120
+      ],
+      "id": "099b6bea-40d2-412c-8d6b-d8b73ad4c3c3",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "IywZRCNk6NIIcd0S",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -520,
+        -120
+      ],
+      "id": "946f5e9d-10e1-4660-9a18-2135550a50c3",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "IywZRCNk6NIIcd0S",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        -120
+      ],
+      "id": "c39589dd-ce16-466c-854a-52f06d4a0229",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        60
+      ],
+      "id": "66df9351-4e97-4fee-bf45-b317bcf7ca18",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "KljnMheTGQ5qXqzb",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "Company Name",
+              "description": "the Company Name",
+              "required": true
+            },
+            {
+              "name": "Address",
+              "description": "the company Address",
+              "required": true
+            },
+            {
+              "name": "Invoice Number",
+              "description": "the Invoice Number",
+              "required": true
+            },
+            {
+              "name": "Invoice Date ",
+              "description": "the Invoice Date ",
+              "required": true
+            },
+            {
+              "name": "Due Date",
+              "description": "the invoice  Due Date",
+              "required": true
+            },
+            {
+              "name": "Delivery Date",
+              "description": "the invoice Delivery Date",
+              "required": true
+            },
+            {
+              "name": "Total amount",
+              "description": "the invoice Total amount",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "=You are an expert extraction algorithm.\nOnly extract relevant information from the text.\nIf you do not know the value of an attribute asked to extract, you may omit the attribute's value."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        -120
+      ],
+      "id": "42593301-9de0-461a-a2ba-7f072b72a1ad",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1H5G54DbIt_npiSwz-WtlJOCwBNBqNhbaKAtXMal5oro",
+          "mode": "list",
+          "cachedResultName": "Invoice DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H5G54DbIt_npiSwz-WtlJOCwBNBqNhbaKAtXMal5oro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H5G54DbIt_npiSwz-WtlJOCwBNBqNhbaKAtXMal5oro/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company Name": "={{ $json.output['Company Name'] }}",
+            "Address": "={{ $json.output.Address }}",
+            "Invoice Number": "={{ $json.output['Invoice Number'] }}",
+            "Invoice Date ": "={{ $json.output['Invoice Date '] }}",
+            "Due Date": "={{ $json.output['Due Date'] }}",
+            "Delivery Date": "={{ $json.output['Delivery Date'] }}",
+            "Total amount": "={{ $json.output['Total amount'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice Date ",
+              "displayName": "Invoice Date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delivery Date",
+              "displayName": "Delivery Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total amount",
+              "displayName": "Total amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        160,
+        -120
+      ],
+      "id": "d3525187-7fde-4a01-bbd2-6a52dbdc9df8",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "b6ttCn47gXimJIHX",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \n",
+        "height": 420,
+        "width": 1560
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        -240
+      ],
+      "id": "3fcd5167-3a0e-4bff-a5b2-21fd926088e9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "* Starts the workflow when a new PDF (or other specified file type) is uploaded.\n* Prepares the file for processing by other nodes.\n* Converts the document into a format that can be analyzed for structured information. \n* Extracts structured information (e.g., name, date, amount) from the raw PDF text.\n* Appends the structured data to a DB.",
+        "height": 340,
+        "width": 440,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        -180
+      ],
+      "id": "bbd32737-f90f-4b99-8c67-8bebc36405f8",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8ce008df-cf6b-4b61-b846-aa5c7739baed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e84d69d57fe6f992415babdeb0ef9149c8d266dbc1f28068ed65ad8aae68949e"
+  },
+  "id": "r2IYgcWRFe1dbgqq",
+  "tags": []
+}
